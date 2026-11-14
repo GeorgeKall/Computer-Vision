@@ -2,6 +2,8 @@ import cv2
 import mediapipe as mp
 import pickle
 import numpy as np
+import torch
+from model_class import MyModel 
 
 import warnings
 warnings.filterwarnings(
@@ -11,13 +13,15 @@ warnings.filterwarnings(
 warnings.filterwarnings("ignore", category=UserWarning, module="google.protobuf")
 
 # Load trained model
-with open("data/hand_model.pkl", "rb") as f:
-    model = pickle.load(f)
+with open("data/model.pkl", "rb") as f:
+    model = MyModel()
+    model.load_state_dict(torch.load(f, weights_only=True))
+    model.eval()
 
 mp_hands = mp.solutions.hands
 mp_drawing = mp.solutions.drawing_utils
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(2) #change here which camera we are using if system has multiple
 
 with mp_hands.Hands(
     max_num_hands=1,
@@ -49,7 +53,11 @@ with mp_hands.Hands(
 
                 # Predict gesture
                 data_row = np.array(data_row).reshape(1, -1)
-                prediction = int(model.predict(data_row)[0])
+                # Make input into a tensor
+                data_tensor = torch.from_numpy(data_row).to(torch.float32)
+                prediction = int(torch.argmax(torch.softmax(model(data_tensor), dim=1)))
+                prediction = prediction + 1 # add 1 to the prediction cause we want to predict labels 1-5 
+
 
         # Show prediction on screen
         if prediction:

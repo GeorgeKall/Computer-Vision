@@ -20,7 +20,7 @@ if not os.path.exists(csv_path):
             header += [f"x{i}", f"y{i}", f"z{i}"]
         writer.writerow(header)
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(2) # Change here which camera we are using if system has multiple
 
 print("Press 1–5 to record a gesture, or ESC to quit.")
 
